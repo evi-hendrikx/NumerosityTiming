@@ -12,7 +12,7 @@ NumTim_run_all calls other scripts you need. You still need to provide paths whe
 As the meshes require 3d information about the voxel coordinates, this information cannot be extracted for the previously created datasets. They are created separately (surface_plots or manually).
 
 ### Bayesian topology statistics
-Performed with R_bayesian_mean_NEW.R
+Performed with R_bayesian_github.R
 
 ### Other required folders
 PyColormap4Matlab (can be found here: https://nl.mathworks.com/matlabcentral/fileexchange/68239-pycolormap4matlab)
