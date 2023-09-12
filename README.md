@@ -18,5 +18,12 @@ Performed with R_bayesian_github.R
 PyColormap4Matlab (can be found here: https://nl.mathworks.com/matlabcentral/fileexchange/68239-pycolormap4matlab)
 circstat-matlab-master (can be found here: https://github.com/circstat/circstat-matlab)
 
-### Contact
+## Licence
+Shield: CC BY 4.0
+
+This work is licensed under a Creative Commons Attribution 4.0 International License.
+
+CC BY 4.0
+
+## Contact
 For any questions or remarks, please send an email to e.h.h.hendrikx@uu.nl
