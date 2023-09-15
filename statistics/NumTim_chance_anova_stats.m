@@ -159,7 +159,6 @@ for var = 1:length(variable)
             end
 
 
-            %% TODO: check out "approximate" stuff signrank
             % normally distributed
             if isempty(find(pvals_norm_chance(~isnan(pvals_norm_chance))<0.05, 1))
                 results_stats = '[~,stat.different_from_chance.(DT_runs{run}).(variable{var}).(parameters{par}).(current_roi_names{roi}).p,stat.different_from_chance.(DT_runs{run}).(variable{var}).(parameters{par}).(current_roi_names{roi}).ci,stat.different_from_chance.(DT_runs{run}).(variable{var}).(parameters{par}).(current_roi_names{roi}).stats]';
@@ -248,7 +247,6 @@ for var = 1:length(variable)
             end
 
             % post hocs
-            %% TODO: other assumptions?
             if eval(strcat('stat.ANOVA.(DT_runs{run}).',store,'.tbl{string(stat.ANOVA.(DT_runs{run}).',store,'.tbl(:,1))=="map",string(stat.ANOVA.(DT_runs{run}).',store,'.tbl(1,:))=="Prob>F"} < 0.05'))
                 if isempty(find(p_norms_ANOVA<0.05, 1))
                     [results,~,~,gnames] = multcompare(eval(strcat('stat.ANOVA.(DT_runs{run}).', store,'.stats')),'Dimension',[1]);
