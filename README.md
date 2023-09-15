@@ -2,7 +2,7 @@
 
 These scripts were used to run the analysis for
 
-Hendrikx, E., Paul, J.M., van Ackooij, M., van der Stoep, N., & Harvey, B.M. Cortical quantity representations of visual numerosity and timing increasingly overlap into superior cortices but remain distinct.
+Hendrikx, E., Paul, J.M., van Ackooij, M., van der Stoep, N., & Harvey, B.M. Cortical quantity representations of visual numerosity and timing overlap increasingly into superior cortices but remain distinct.
 
 ## Running the pipeline
 ### Creating the dataset
