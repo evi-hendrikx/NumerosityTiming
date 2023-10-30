@@ -1,4 +1,4 @@
-function stat = NumTime_data_topo(stat,whichCombi,all_combis,select_ids,DT_runs,run,minAmountCorrelation,topo_measurement_per_map,type_angle,stat_path)
+function stat = NumTime_data_topo(stat,whichCombi,all_combis,select_ids,DT_runs,run,minAmountCorrelation,topo_measurement_per_map,type_angle,stat_path,selection_all_combis,selection_DT_runs,selection_run)
 %% Selects and computes correlations from requested ids and assigns them to stats
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Input
@@ -33,7 +33,7 @@ if whichCombi == 1
 end
 
 %% get values of shared voxels
-if whichCombi ~=4
+if whichCombi ~=4 && whichCombi ~= 5
     all_normals = all_combis.shared_topo_vectors.normals(select_ids);
     cross_1_x = all_combis.shared_topo_vectors.cross.Run_1.x0(select_ids);
     cross_2_x = all_combis.shared_topo_vectors.cross.Run_2.x0(select_ids);
@@ -56,6 +56,68 @@ else
             eval(['cross_2_y{datapoint} = [all_combis.shared_topo_vectors.cross.Run_2.y0{all_combis.subject == stat.data.(DT_runs{run}).subj(datapoint) & all_combis.hemi == stat.data.(DT_runs{run}).hemi(datapoint) & all_combis.Map',char(num2str(run)),' == stat.data.(DT_runs{run}).map(datapoint) & ~contains(all_combis.Map',char(num2str(3-run)),', "All")}];'])
         end
     end
+
+    if whichCombi == 5
+        % also get values of the voxels used for selection
+        for datapoint = 1:length(stat.data.(DT_runs{run}).subj)
+            eval(['shared_coords{datapoint} = [all_combis.shared_coord_ids{all_combis.subject == stat.data.(DT_runs{run}).subj(datapoint) & all_combis.hemi == stat.data.(DT_runs{run}).hemi(datapoint) & all_combis.Map',char(num2str(run)),' == stat.data.(DT_runs{run}).map(datapoint) & ~contains(all_combis.Map',char(num2str(3-run)),', "All")}];'])
+
+            eval(['selection_shared_coords{datapoint} = [selection_all_combis.shared_coord_ids{selection_all_combis.subject == stat.data.(DT_runs{run}).subj(datapoint) & selection_all_combis.hemi == stat.data.(DT_runs{run}).hemi(datapoint) & selection_all_combis.Map',char(num2str(selection_run)),' == stat.data.(DT_runs{run}).map(datapoint) & ~contains(selection_all_combis.Map',char(num2str(3-selection_run)),', "All")}];'])
+
+            eval(['selection_normals{datapoint} = [selection_all_combis.shared_topo_vectors.normals{selection_all_combis.subject == stat.data.(DT_runs{run}).subj(datapoint) & selection_all_combis.hemi == stat.data.(DT_runs{run}).hemi(datapoint) & selection_all_combis.Map',char(num2str(selection_run)),' == stat.data.(DT_runs{run}).map(datapoint) & ~contains(selection_all_combis.Map',char(num2str(3-selection_run)),', "All")}];'])
+            eval(['selection_cross_1_x{datapoint} = [selection_all_combis.shared_topo_vectors.cross.Run_1.x0{selection_all_combis.subject == stat.data.(DT_runs{run}).subj(datapoint) & selection_all_combis.hemi == stat.data.(DT_runs{run}).hemi(datapoint) & selection_all_combis.Map',char(num2str(selection_run)),' == stat.data.(DT_runs{run}).map(datapoint) & ~contains(selection_all_combis.Map',char(num2str(3-selection_run)),', "All")}];'])
+            eval(['selection_cross_2_x{datapoint} = [selection_all_combis.shared_topo_vectors.cross.Run_2.x0{selection_all_combis.subject == stat.data.(DT_runs{run}).subj(datapoint) & selection_all_combis.hemi == stat.data.(DT_runs{run}).hemi(datapoint) & selection_all_combis.Map',char(num2str(selection_run)),' == stat.data.(DT_runs{run}).map(datapoint) & ~contains(selection_all_combis.Map',char(num2str(3-selection_run)),', "All")}];'])
+
+
+            if  contains(selection_DT_runs{1},'Timing')
+                eval(['selection_cross_1_y{datapoint} = [selection_all_combis.shared_topo_vectors.cross.Run_1.y0{selection_all_combis.subject == stat.data.(DT_runs{run}).subj(datapoint) & selection_all_combis.hemi == stat.data.(DT_runs{run}).hemi(datapoint) & selection_all_combis.Map',char(num2str(selection_run)),' == stat.data.(DT_runs{run}).map(datapoint) & ~contains(selection_all_combis.Map',char(num2str(3-selection_run)),', "All")}];'])
+            end
+            if  contains(selection_DT_runs{2},'Timing')
+                eval(['selection_cross_2_y{datapoint} = [selection_all_combis.shared_topo_vectors.cross.Run_2.y0{selection_all_combis.subject == stat.data.(DT_runs{run}).subj(datapoint) & selection_all_combis.hemi == stat.data.(DT_runs{run}).hemi(datapoint) & selection_all_combis.Map',char(num2str(selection_run)),' == stat.data.(DT_runs{run}).map(datapoint) & ~contains(selection_all_combis.Map',char(num2str(3-selection_run)),', "All")}];'])
+            end
+        end
+
+        for  datapoint = 1:length(stat.data.(DT_runs{run}).subj)
+
+            % within the area that was overlapping for the other selection
+            % Which voxels also overlap for these two runs?
+            [~,id_overlap_voxels{datapoint},selection_id_overlap_voxels{datapoint}] = intersectCols(shared_coords{datapoint},selection_shared_coords{datapoint});
+
+            % voxels within overlapping area shared by all
+            c1x = cross_1_x{datapoint}(:,id_overlap_voxels{datapoint});
+            cross_1_x{datapoint} = c1x;
+            if contains(DT_runs{1}, 'Timing')
+                c1y = cross_1_y{datapoint}(:,id_overlap_voxels{datapoint});
+                cross_1_y{datapoint} = c1y;
+            end
+            c2x = cross_2_x{datapoint}(:,id_overlap_voxels{datapoint});
+            cross_2_x{datapoint} = c2x;
+            if contains(DT_runs{2}, 'Timing')
+                c2y = cross_2_y{datapoint}(:,id_overlap_voxels{datapoint});
+                cross_2_y{datapoint} = c2y;
+            end
+
+            an = all_normals{datapoint}(:,id_overlap_voxels{datapoint});
+            all_normals{datapoint} = an;
+
+            sc1x = selection_cross_1_x{datapoint}(:,selection_id_overlap_voxels{datapoint});
+            selection_cross_1_x{datapoint} = sc1x;
+            sc2x = selection_cross_2_x{datapoint}(:,selection_id_overlap_voxels{datapoint});
+            selection_cross_2_x{datapoint}  = sc2x;
+            if contains(selection_DT_runs{1}, 'Timing')
+                sc1y = selection_cross_1_y{datapoint}(:,selection_id_overlap_voxels{datapoint});
+                selection_cross_1_y{datapoint} = sc1y;
+            end
+            if contains(selection_DT_runs{2}, 'Timing')
+                sc2y = selection_cross_2_y{datapoint}(:,selection_id_overlap_voxels{datapoint});
+                selection_cross_2_y{datapoint} = sc2y;
+            end
+
+            sn = selection_normals{datapoint}(:,selection_id_overlap_voxels{datapoint});
+            selection_normals{datapoint} = sn;
+        end
+    end
+
 end
 
 %% compute mean vector angle
@@ -166,6 +228,106 @@ for datapoint = 1:length(stat.data.(DT_runs{run}).subj)
         end
     end
 
+
+
+    %% REPEAT PREVIOUS FOR SELECTION
+    if whichCombi == 5
+        if length(selection_cross_1_x{datapoint}) >= minAmountCorrelation
+    
+            x0x0 = NaN(1,length(selection_cross_1_x{datapoint}));
+            normals = selection_normals{datapoint};
+            cross.x0_1 = selection_cross_1_x{datapoint};
+            cross.x0_2 = selection_cross_2_x{datapoint};
+            if contains(selection_DT_runs{1}, 'Timing')
+                y0x0 = x0x0;
+                cross.y0_1 = selection_cross_1_y{datapoint};
+            end
+            if contains(selection_DT_runs{2}, 'Timing')
+                x0y0 = x0x0;
+                cross.y0_2 = selection_cross_2_y{datapoint};
+            end
+            if contains(selection_DT_runs{1}, 'Timing') && contains(selection_DT_runs{2}, 'Timing')
+                y0y0 = x0x0;
+            end
+    
+            % I run vecangle360 per voxel, otherwise it does not do
+            % element-wise operations
+            for shared_vox = 1:length(selection_cross_1_x{datapoint})
+                try
+                    % you could expect the angles in the different hemispheres to be mirror images
+                    % of each other
+                    % angle anticlockwise away from run 1
+                    if (string(type_angle) == "medial-lateral" && stat.data.(DT_runs{run}).hemi(datapoint) == "Right") || string(type_angle) == "left-right"
+                        x0x0(shared_vox) = vecangle360(cross.x0_1(:,shared_vox),cross.x0_2(:,shared_vox),normals(:,shared_vox));
+                        if contains(selection_DT_runs{1}, 'Timing')
+                            y0x0(shared_vox) = vecangle360(cross.y0_1(:,shared_vox),cross.x0_2(:,shared_vox),normals(:,shared_vox));
+                        end
+                        if contains(selection_DT_runs{2}, 'Timing')
+                            x0y0(shared_vox) = vecangle360(cross.x0_1(:,shared_vox),cross.y0_2(:,shared_vox),normals(:,shared_vox));
+                        end
+                        if contains(selection_DT_runs{1}, 'Timing') && contains(selection_DT_runs{2}, 'Timing')
+                            y0y0(shared_vox) = vecangle360(cross.y0_1(:,shared_vox),cross.y0_2(:,shared_vox),normals(:,shared_vox));
+                        end
+                        % angle anticlockwise away from run 2
+                    elseif string(type_angle) == "medial-lateral" && stat.data.(DT_runs{run}).hemi(datapoint) == "Left"
+                        x0x0(shared_vox) = vecangle360(cross.x0_2(:,shared_vox),cross.x0_1(:,shared_vox),normals(:,shared_vox));
+                        if contains(selection_DT_runs{1}, 'Timing')
+                            y0x0(shared_vox) = vecangle360(cross.x0_2(:,shared_vox),cross.y0_1(:,shared_vox),normals(:,shared_vox));
+                        end
+                        if contains(selection_DT_runs{2}, 'Timing')
+                            x0y0(shared_vox) = vecangle360(cross.y0_2(:,shared_vox),cross.x0_1(:,shared_vox),normals(:,shared_vox));
+                        end
+                        if contains(selection_DT_runs{1}, 'Timing') && contains(selection_DT_runs{2}, 'Timing')
+                            y0y0(shared_vox) = vecangle360(cross.y0_2(:,shared_vox),cross.y0_1(:,shared_vox),normals(:,shared_vox));
+                        end
+                    end
+                catch
+                    disp(stat.data.(DT_runs{run}).subj(datapoint))
+                    disp(stat.data.(DT_runs{run}).hemi(datapoint))
+                    disp(stat.data.(DT_runs{run}).map(datapoint))
+                    error("vector has NaN values. Something may have gone wrong in computing shared voxels (these should be above the threshold for both)")
+                end
+    
+            end
+    
+            %% calculate mean angle
+            %% and STDEV
+            % "Interestingly, multiple quantities have been introduced as analogues to the linear standard deviation. First, the angular deviation is defined ass = sqrt(2 * (1 − R)). This quantity lies in the interval [0, sqrt(2)].
+            % Alternatively, the circular standard deviation is defined as s0 = sqrt(−2 * ln(R)) and ranges from 0 to ∞.
+            % Generally, the first measure is preferred, as it is bounded, but the two measures deviate little (Zar (1999))."
+    
+            stat.data.(selection_DT_runs{run}).selection_topo.x0.x0(datapoint) = eval(['rad2deg(',get_summary_stat, '(deg2rad(x0x0),',test_input,'))']);
+            stat.data.(selection_DT_runs{run}).selection_topo_std.x0.x0(datapoint) = rad2deg(circ_std(deg2rad(x0x0)));
+            if contains(selection_DT_runs{1}, 'Timing')
+                stat.data.(selection_DT_runs{run}).selection_topo.y0.x0(datapoint) = eval(['rad2deg(',get_summary_stat, '(deg2rad(y0x0),',test_input,'))']);
+                stat.data.(selection_DT_runs{run}).selection_topo_std.y0.x0(datapoint) = rad2deg(circ_std(deg2rad(y0x0)));
+            end
+            if contains(selection_DT_runs{2}, 'Timing')
+                stat.data.(selection_DT_runs{run}).selection_topo.x0.y0(datapoint) = eval(['rad2deg(',get_summary_stat, '(deg2rad(x0y0),',test_input,'))']);
+                stat.data.(selection_DT_runs{run}).selection_topo_std.x0.y0(datapoint) = rad2deg(circ_std(deg2rad(x0y0)));
+            end
+            if contains(selection_DT_runs{1}, 'Timing') && contains(selection_DT_runs{2}, 'Timing')
+                stat.data.(selection_DT_runs{run}).selection_topo.y0.y0(datapoint) = eval(['rad2deg(',get_summary_stat, '(deg2rad(y0y0),',test_input,'))']);
+                stat.data.(selection_DT_runs{run}).selection_topo_std.y0.y0(datapoint) = rad2deg(circ_std(deg2rad(y0y0)));
+            end
+        else
+            stat.data.(selection_DT_runs{run}).selection_topo.x0.x0(datapoint) = NaN;
+            stat.data.(selection_DT_runs{run}).selection_topo_std.x0.x0(datapoint) = NaN;
+            if contains(selection_DT_runs{1}, 'Timing')
+                stat.data.(selection_DT_runs{run}).selection_topo.y0.x0(datapoint) = NaN;
+                stat.data.(selection_DT_runs{run}).selection_topo_std.y0.x0(datapoint) = NaN;
+            end
+            if contains(selection_DT_runs{2}, 'Timing')
+                stat.data.(selection_DT_runs{run}).selection_topo.x0.y0(datapoint) = NaN;
+                stat.data.(selection_DT_runs{run}).selection_topo_std.x0.y0(datapoint) = NaN;
+            end
+            if contains(selection_DT_runs{1}, 'Timing') && contains(selection_DT_runs{2}, 'Timing')
+                stat.data.(selection_DT_runs{run}).selection_topo.y0.y0(datapoint) = NaN;
+                stat.data.(selection_DT_runs{run}).selection_topo_std.y0.y0(datapoint) = NaN;
+            end
+        end
+
+    end
 end
 
 end

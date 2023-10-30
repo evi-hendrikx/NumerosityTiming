@@ -25,7 +25,7 @@ else
 end
 
 for run = 1:length(new_runs)
-
+   
     % prepare information
     parameters = []; data = [];
 
@@ -40,7 +40,9 @@ for run = 1:length(new_runs)
         ang2(isnan(ang2)&~isnan(ang1)) = ang1(isnan(ang2)&~isnan(ang1));
 
         angles = rad2deg(circ_mean([deg2rad(ang1);deg2rad(ang2)]',[],2));
-
+        if isnan(angles)
+            angles = rad2deg(circ_mean([deg2rad(ang1),deg2rad(ang2)],[],2));
+        end
 
         data = {angles};
     end
@@ -54,7 +56,7 @@ for run = 1:length(new_runs)
         data = [data {stat.data.(DT_runs{run}).topo.x0.y0}];
         parameters = [parameters {'x0y0'}];
     end
-    if isfield(stat.data.(DT_runs{run}).topo, 'y0') && isfield(stat.data.(DT_runs{run}).topo.x0, 'y0')
+    if (isfield(stat.data.(DT_runs{run}).topo, 'y0') && isfield(stat.data.(DT_runs{run}).topo.x0, 'y0')) || isfield(stat.data.(DT_runs{run}).topo, 'y0') && isfield(stat.data.(DT_runs{run}).topo.y0, 'y0') 
         if string(Run_1.Type) ~= string(Run_2.Type)
 
             data = [data {stat.data.(DT_runs{run}).topo.y0.y0}];
@@ -67,11 +69,18 @@ for run = 1:length(new_runs)
             ang2(isnan(ang2)&~isnan(ang1)) = ang1(isnan(ang2)&~isnan(ang1));
 
             angles = rad2deg(circ_mean([deg2rad(ang1);deg2rad(ang2)]',[],2));
-
+            if isnan(angles)
+                angles = rad2deg(circ_mean([deg2rad(ang1),deg2rad(ang2)],[],2));
+            end
             data = [data {angles}];
 
         end
         parameters = [parameters {'y0y0'}];
+    end
+
+
+    if string(Run_1.Type) == string(Run_2.Type)
+        run = length(new_runs);
     end
 
 
@@ -103,20 +112,22 @@ for run = 1:length(new_runs)
         point_x=[];point_y=[];z_mean=[];point_y_median=[];
 
         % circular scatters
-          colorMapScatter = linspace(1,10,8);
+        colorMapScatter = linspace(1,10,8);
 
         left_data = data{par}(stat.data.(DT_runs{run}).hemi=='Left');
         left_maps = stat.data.(DT_runs{run}).map(stat.data.(DT_runs{run}).hemi=='Left');
         z_left = exp(1i*deg2rad(left_data)) * radius_circles;
         subj_left = stat.data.(DT_runs{run}).subj(stat.data.(DT_runs{run}).hemi=='Left');
-        subjs_left = str2num(char(strip(subj_left,'S')));
+        subNumsL = char(strip(subj_left,'S'));
+        subjs_left = str2num(subNumsL(:));
         left_color = colorMapScatter(subjs_left);
 
         right_data = data{par}(stat.data.(DT_runs{run}).hemi=='Right');
         right_maps = stat.data.(DT_runs{run}).map(stat.data.(DT_runs{run}).hemi=='Right');
         z_right = exp(1i*deg2rad(right_data))* radius_circles;
         subj_right = stat.data.(DT_runs{run}).subj(stat.data.(DT_runs{run}).hemi=='Right');
-        subjs_right = str2num(char(strip(subj_right,'S')));
+        subNumsR = char(strip(subj_right,'S'));
+        subjs_right = str2num(subNumsR(:));
         right_color = colorMapScatter(subjs_right);
 
         % summary stats with their CI
@@ -155,10 +166,10 @@ for run = 1:length(new_runs)
 
 
         end
-      
+
 
         hold on
-   
+
         circle_id = 0;
 
         for roi = 1:length(GNames{run})
@@ -166,14 +177,14 @@ for run = 1:length(new_runs)
 
             sfh1 = subplot(circles_per_column,circles_per_row,circle_id);
             set(sfh1, 'Fontsize',7,'TickDir','out', 'FontName','Arial','Units','centimeters','Color','w','XColor','k','YColor','k','box','off');
-          
+
 
             %% which subplot
             xposition_sp = 1 + mod(circle_id-1,3)*size_subplots;
             yposition_sp = 2+ circles_per_column * size_subplots - ceil(circle_id/3)*size_subplots;
 
             sfh1.Position = [xposition_sp yposition_sp size_subplots-0.1 size_subplots-0.1];
-            
+
             cm = getPyPlot_cMap('Set2');
             colormap(gca, cm)
             set(sfh1,'CLim',[1,10]);
@@ -207,7 +218,7 @@ for run = 1:length(new_runs)
             camroll(90)
             sfh1.XLabel.String = [GNames{run}(roi)];
             set(gca, 'XDir','reverse','xtick',[],'ytick',[])
-    
+
             plot_values.(new_runs{run}).topo.(parameters{par}).(GNames{run}{roi}).errorbars = error_bars(:,roi);
             plot_values.(new_runs{run}).topo.(parameters{par}).(GNames{run}{roi}).r_angl = r_angl(:,roi);
             plot_values.(new_runs{run}).topo.(parameters{par}).(GNames{run}{roi}).mean = point_y(roi);
@@ -218,7 +229,7 @@ for run = 1:length(new_runs)
 
         end
 
-     
+
         try
             savename_eps = strcat(fig_path, '_topo_',new_runs{run},'_',parameters{par}, '.eps');
         catch
@@ -229,6 +240,11 @@ for run = 1:length(new_runs)
         %         export_fig(savename_eps,'-eps','-r600','-painters');
         close all
     end
+
+    if string(Run_1.Type) == string(Run_2.Type)
+        break
+    end
+
 end
 savename_struct = strcat(fig_path, '_topo_',DT_runs{1},'_',DT_runs{2}, '_plot_values.mat');
 save(savename_struct, 'plot_values')

@@ -3,27 +3,28 @@
 clear all
 close all
 
-addpath('/media/evi/500GB/submission_timing_number_overlap')
-addpath('/media/evi/500GB/submission_timing_number_overlap/scripts')
-addpath('/media/evi/500GB/submission_timing_number_overlap/scripts/load_data')
-addpath('/media/evi/500GB/submission_timing_number_overlap/scripts/restructure_and_select_data')
-addpath('/media/evi/500GB/submission_timing_number_overlap/scripts/statistics')
-addpath('/media/evi/500GB/submission_timing_number_overlap/scripts/PyColormap4Matlab')
-addpath('/media/evi/500GB/submission_timing_number_overlap/scripts/circstat-matlab-master')
-addpath('/media/evi/500GB/submission_timing_number_overlap/scripts/repeated_measures_comparisons')
+general_folder = '[gen_path]';
+addpath(general_folder)
+addpath(strcat(general_folder, '/scripts'));
+addpath(strcat(general_folder, '/scripts/load_data'));
+addpath(strcat(general_folder, '/scripts/restructure_and_select_data'));
+addpath(strcat(general_folder, '/scripts/statistics'));
+addpath(strcat(general_folder, '/scripts/PyColormap4Matlab'));
+addpath(strcat(general_folder, '/scripts/circstat-matlab-master'));
+addpath(strcat(general_folder, '/scripts/repeated_measures_comparisons'));
 
-paths{1}= [anonymized]
-paths{2}= [anonymized]
-paths{3}= [anonymized]
-paths{4}= [anonymized]
-paths{5}= [anonymized]
-paths{6}= [anonymized]
-paths{7}= [anonymized]
-paths{8}= [anonymized]
+paths{1}=[anonymized]
+paths{2}=[anonymized]
+paths{3}=[anonymized]
+paths{4}=[anonymized]
+paths{5}=[anonymized]
+paths{6}=[anonymized]
+paths{7}=[anonymized]
+paths{8}=[anonymized]
 
 new_subjNames = {'S6','S5','S4','S7','S8','S3','S1','S2'};
-data_path = '/media/evi/500GB/submission_timing_number_overlap/data';
-save_path = '/media/evi/500GB/submission_timing_number_overlap/results';
+data_path = strcat(general_folder,'/data');
+save_path = strcat(general_folder,'/results');
 
 % for selecting data
 minVEnum=0.3;
@@ -33,14 +34,11 @@ minVEtime=0.2;
 NumTim_path = strcat(data_path, '/NumTim_data_minVEtime=',string(minVEtime),'_minVEnum=',string(minVEnum),'.mat');
 NumTim_data = NumTim_load_data(NumTim_path, new_subjNames, paths, minVEtime, minVEnum);
 
-
-if exist(strcat(data_path, '/time_series.mat'), 'file') ~= 2 % Only needs to be done if you don't already have time_series
+if exist(strcat(data_path, '/time_series.mat'), 'file') ~= 2 % Only needs to be done if you don't already have time_series_
     NumTim_time_series(data_path, new_subjNames, paths)
 end
 
-
-%% restructure data and extract relevant combination ids
-
+%% Compute topographic info and restructure data
 % for determining compared pairs// Keep alphabetical order
 DT_run_1 = 'NumerosityAll';
 DT_run_2 = 'TimingAll';
@@ -51,6 +49,7 @@ topo_path = strcat(save_path, '/topo_',DT_run_1,'_',DT_run_2, '_minVEtime=',char
 
 % compute relevant aspects for all possible combinations
 all_combis = NumTim_restructure_info(all_combi_path, topo_path, NumTim_data, paths, DT_runs);
+%% Compute statistics for relevant combinations
 
 % specify types of comparisons
 % 1 = all overlap; 
@@ -67,8 +66,8 @@ select_ids = NumTim_get_select_ids(all_combis, whichCombi,DT_runs);
 
 % get the information about the other selection you're interested in
 if whichCombi == 5
-    selection_DT_run_1 = 'NumerosityOdd';
-    selection_DT_run_2 = 'TimingEven';
+    selection_DT_run_1 = 'NumerosityEven';
+    selection_DT_run_2 = 'TimingOdd';
 
     selection_DT_runs = {selection_DT_run_1, selection_DT_run_2};
     selection_all_combi_path = strcat(save_path, '/all_combi_',selection_DT_run_1,'_',selection_DT_run_2,'_minVEtime=',char(string(minVEtime)),'_minVEnum=',char(string(minVEnum)),'.mat');
@@ -77,7 +76,7 @@ if whichCombi == 5
     selection_all_combis = NumTim_restructure_info(selection_all_combi_path, selection_topo_path, NumTim_data, paths, selection_DT_runs);
 end
 
-save_path = ['/media/evi/500GB/submission_timing_number_overlap/results/whichCombi=', char(num2str(whichCombi))];
+save_path = [general_folder,'/results/whichCombi=', char(num2str(whichCombi))];
 
 %% select correct ids and compute stats
 minAmountCorrelation = 10;
@@ -112,4 +111,7 @@ NumTim_compare_proportions(fig_path)
 
 fig_path = strcat(save_path, '/','compare_rm_correlation_minVEtime=',string(minVEtime),'_minVEnum=',string(minVEnum),'_whichCombi=',char(string(whichCombi)));
 NumTim_compare_correlations(fig_path,whichCombi)
+
+fig_path = strcat(save_path, '/fig_rmCompare_topo_meanRuns=1_Halves_minVEtime=',string(minVEtime),'_minVEnum=',string(minVEnum),'_whichCombi=',num2str(whichCombi),'_topo_measure=',topo_measurement_per_map);
+NumTim_compare_topo(fig_path, NumTim_data, whichCombi)
 

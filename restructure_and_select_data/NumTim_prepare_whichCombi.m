@@ -46,11 +46,8 @@ for run = 1:length(DT_runs)
     stat = NumTim_data_info(stat,all_combis,select_ids{run},DT_runs,run);
 
     if whichCombi == 5
-        % since I'm only using whichCombi = 5 for correlations I cut it out
-        % of the other scripts (they're still in the older versions) to
-        % keep it a bit more clean. So adapt that if you want whichCombi =
-        % 5 to work for prop or topo
         stat = NumTime_data_corr(stat,whichCombi,all_combis,select_ids{run},DT_runs,run,minAmountCorrelation,selection_all_combis,selection_DT_runs,selection_run);
+        stat = NumTime_data_topo(stat,whichCombi,all_combis,select_ids{run},DT_runs,run,minAmountCorrelation,topo_measurement_per_map,type_angle,stat_path,selection_all_combis,selection_DT_runs,selection_run);
 
     else
         stat = NumTime_data_prop(stat,whichCombi,all_combis,select_ids{run},DT_runs,run);

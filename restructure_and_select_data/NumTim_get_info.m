@@ -39,14 +39,14 @@ end
 for run = 1:length(DT_runs)
     eval(strcat('Run_',char(num2str(run)),'.DTrun = DT_runs{',char(num2str(run)),'};'));
 
-    T_or_N = split(eval(strcat('Run_',char(num2str(run)),'.DTrun')),{'All','Even','Odd'});
+    T_or_N = split(eval(strcat('Run_',char(num2str(run)),'.DTrun')),{'All','Even','Odd','Halves','RM'});
     A_O_or_E = split(eval(strcat('Run_',char(num2str(run)),'.DTrun')),{'Timing','Numerosity'});
     eval(strcat('Run_',char(num2str(run)),'.Type = T_or_N{1};'));
     eval(strcat('Run_',char(num2str(run)),'.Run = A_O_or_E{2};'));
     
     if eval(strcat('Run_',char(num2str(run)),'.Type == "Timing"'))
         eval(strcat('Run_',char(num2str(run)),'.Names = TimingMapNames;'));
-    else
+    elseif eval(strcat('Run_',char(num2str(run)),'.Type == "Numerosity"'))
         eval(strcat('Run_',char(num2str(run)),'.Names = NumerosityMapNames;'));
     end
 end
